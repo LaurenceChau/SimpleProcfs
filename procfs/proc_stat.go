@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+const userHZ = 100
+
 type ProcStatCode int
 
 const (
@@ -61,11 +63,9 @@ const (
 	ExitCode
 )
 
-const userHZ = 100
-
 type ProcStat struct {
 	PID                 int
-	PType               string
+	PPID                int
 	Comm                string
 	State               string
 	MinFlt              uint
@@ -84,7 +84,7 @@ type ProcStat struct {
 	RSS                 int
 }
 
-func ParseStat(statfile string, ptype string) (ProcStat, error) {
+func ParseStat(statfile string) (ProcStat, error) {
 	data, err := ReadFileNoStat(statfile)
 	if err != nil {
 		return ProcStat{}, err
@@ -94,7 +94,7 @@ func ParseStat(statfile string, ptype string) (ProcStat, error) {
 
 	return ProcStat{
 		PID:   toInt[int](stats[PID]),
-		PType: ptype,
+		PPID:  toInt[int](stats[PPID]),
 		Comm:  string(stats[Comm]),
 		State: string(stats[State]),
 	}, nil
