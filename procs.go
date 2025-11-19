@@ -4,40 +4,42 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"procfs/procfs"
-	"strconv"
+	"procs/procfs"
 	"strings"
 	"time"
 )
 
-func getMetrics() string {
+func getMetrics(procfs_path string) string {
 	procs, err := os.ReadDir("/proc")
 	if err != nil {
 		log.Fatalf("Failed to read path: %v", err)
 	}
 	var builder strings.Builder
 
-	for _, proc := range procs {
-		pid := proc.Name()
-		if _, err := strconv.Atoi(pid); err != nil {
+	for _, p := range procs {
+		if !procfs.IsDigitsOnly(p.Name()) {
 			continue
 		}
 
-		proc, err := procfs.ParseProc("/proc", pid, "process")
+		proc, err := procfs.ParseProc(procfs_path, p.Name(), "process")
 		if err != nil {
 			log.Printf("Failed to read stat: %s", err)
 			continue
 		}
+		fmt.Fprintf(&builder, "%s", proc.Ptype)
 
-		tids, _ := os.ReadDir(fmt.Sprintf("/proc/%s/task"))
-		for _, tid := range tids {
-			stat, err := procfs.ParseStat(filepath.Join("/proc", pid, "task", tid.Name(), "stat"), "thread")
+		task_path := procfs_path + "/" + p.Name() + "/task"
+		tasks, _ := os.ReadDir(task_path)
+		for _, t := range tasks {
+			if !procfs.IsDigitsOnly(t.Name()) {
+				continue
+			}
+			proc, err := procfs.ParseProc(task_path, t.Name(), "thread")
 			if err != nil {
 				log.Printf("Failed to read stat: %s", err)
 				continue
 			}
-			builder.WriteString(stat + "\n")
+			fmt.Fprintf(&builder, "%s", proc.Ptype)
 		}
 	}
 
@@ -47,7 +49,7 @@ func getMetrics() string {
 func main() {
 	start := time.Now()
 
-	procInfo := getMetrics()
+	procInfo := getMetrics("/proc")
 	fmt.Println(procInfo)
 
 	elapsed := time.Since(start)

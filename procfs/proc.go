@@ -2,20 +2,18 @@ package procfs
 
 import (
 	"errors"
-	"fmt"
 )
 
 type Proc struct {
-	ptype string
-	stat  ProcStat
+	Ptype string
+	Stat  ProcStat
 }
 
 func ParseProc(procfs_path string, pid string, ptype string) (Proc, error) {
-
-	stat, errStat := ParseStat(fmt.Sprintf("%s/%s/stat", procfs_path, pid))
+	stat, errStat := ParseStat(procfs_path + "/" + pid + "/stat")
 
 	return Proc{
-		ptype: ptype,
-		stat:  stat,
+		Ptype: ptype,
+		Stat:  stat,
 	}, errors.Join(errStat)
 }
