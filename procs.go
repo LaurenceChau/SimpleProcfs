@@ -14,7 +14,7 @@ func getMetrics(procfs_path string) string {
 	if err != nil {
 		log.Fatalf("Failed to read path: %v", err)
 	}
-	var builder strings.Builder
+	var sb strings.Builder
 
 	for _, p := range procs {
 		if !procfs.IsDigitsOnly(p.Name()) {
@@ -26,7 +26,7 @@ func getMetrics(procfs_path string) string {
 			log.Printf("Failed to read stat: %s", err)
 			continue
 		}
-		fmt.Fprintf(&builder, "%s", proc.Ptype)
+		fmt.Fprintf(&sb, "%s", proc.Ptype)
 
 		task_path := procfs_path + "/" + p.Name() + "/task"
 		tasks, _ := os.ReadDir(task_path)
@@ -39,11 +39,11 @@ func getMetrics(procfs_path string) string {
 				log.Printf("Failed to read stat: %s", err)
 				continue
 			}
-			fmt.Fprintf(&builder, "%s", proc.Ptype)
+			fmt.Fprintf(&sb, "%s", proc.Ptype)
 		}
 	}
 
-	return builder.String()
+	return sb.String()
 }
 
 func main() {
